@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>7seg OCR</title>
+  <link rel="stylesheet" href="css/bulma.min.css">
+  
+  <style type="text/css">
+    @font-face {
+      font-family: 'segment7standard';
+      src: url('css/segment7standard-webfont.woff2') format('woff2'),
+          url('css/segment7standard-webfont.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    .ocr-title {
+      font-family: 'Segment7Standard';
+      font-size: 32pt;
+      text-shadow: 1px 1px #ff7575;
+    }
+    label:hover {
+      color: rgb(236, 236, 236) !important;
+    }
+    h1 {
+      padding-top: 100px;
+    }
+    body {
+      background: rgb(34, 33, 33);
+    }
+    button {
+      font-size: 26px;
+      background: rgb(175, 168, 168);
+      border: 0px;
+    }
+
+    .textarea, input, select {
+      background-color: rgb(20, 20, 20) !important;
+      background: rgb(20, 20, 20);
+      color: white !important;
+      border: none;
+    }
+
+
+</style>
+  
+  <style>
+  select {
+    width: 150px;
+  }
+  </style>
+
+</head>
+<body>
+  <section class="section">
+    <div class="container" style="padding-bottom: 300px;">    
+      <h1 class="title has-text-danger-dark ocr-title">7 segments display OCR</h1>
+      <h2 class="subtitle has-text-primary-light">A tool to digitize 7 segments displays</h2>
+      
+      <div class="block">
+        Developed by: <span class="has-text-primary-light">Artur Augusto Martins</span>  | arturaugusto@gmail.com • Source code at <a href="https://github.com/arturaugusto/7seg-ocr" target="_blank">GitHub</a>
+      </div>
+      
+      <!-- <div class="block">
+        <span class="has-text-primary-light">Video tutorial: </span><span class="has-text-primary">Soon</span>
+      </div> -->
+  
+      <div class="columns">
+          
+        <div class="column is-12">
+
+          <div class="box is-shadowless	is-radiusless has-background-grey-darker has-text-primary-light">
+
+            <div class="notification is-link">Allow the camera and select the region of interest using the mouse/fine adjust buttons</div>
+
+            <label for="videoSource">Video source: </label>
+            <div class="select mb-2">
+              <select id="videoSource"></select>
+            </div>
+            
+            
+            <div class="columns">
+              <div class="column is-12" style="text-align: center;">
+                <p class="has-text-grey-light">top fine adjust</p>
+                <div class="box is-shadowless	is-radiusless has-background-grey-dark">
+                  <button onclick="moveTopUp()">&UpArrowBar;</button>
+                  <button onclick="moveTopDown()">&DownArrowBar;</button>
+                </div>
+              </div>
+            </div>
+  
+            <div class="columns">
+              <div class="column is-2" style="text-align: center;">
+                <p class="has-text-grey-light">left fine adjust</p>
+                <div class="box is-shadowless	is-radiusless has-background-grey-dark">
+                  <button onclick="moveLeftLeft()">&larrb;</button>
+                  <button onclick="moveLeftRight()">&rarrb;</button>
+                </div>
+              </div>
+  
+              <div class="column is-8" style="text-align: center;">
+                <video autoplay playsinline style="display: none;"></video>
+                <canvas id="selCanvas" style="cursor: crosshair;"></canvas>                  
+              </div>
+      
+              <div class="column is-2" style="text-align: center;">
+                <p class="has-text-grey-light">right fine adjust</p>
+                <div class="box is-shadowless	is-radiusless has-background-grey-dark">
+                  <button onclick="moveRightLeft()">&larrb;</button>
+                  <button onclick="moveRightRight()">&rarrb;</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="columns">
+              <div class="column is-12" style="text-align: center;">
+                <p class="has-text-grey-light">bottom fine adjust</p>
+                <div class="box is-shadowless	is-radiusless has-background-grey-dark">
+                  <button onclick="moveBottomUp()">&UpArrowBar;</button>
+                  <button onclick="moveBottomDown()">&DownArrowBar;</button>
+                </div>
+              </div>
+            </div>
+  
+                      
+          </div>
+        </div>
+  
+      </div>
+
+
+      <div class="columns">
+        <div class="column is-6">
+          <div class="columns">
+            <div class="column is-12">
+    
+              <div class="box is-shadowless	is-radiusless has-background-grey-darker has-text-primary-light">
+    
+                <div class="columns">
+                  <div class="column is-12">
+                    
+                    <div class="notification is-link">Set the display format and adjust the ticks so they overlap the digits segments.</div>
+    
+                    <label for="format">Display format: </label>
+                    <div class="select mb-2">
+                      <select id="format" onchange="changeDisplayFormat(this)">
+                        <option>8.8</option>
+                        <option>8.8.8</option>
+                        <option>8.8.8.8</option>
+                        <option>8.8.8.8.8</option>
+                        <option>8.8.8.8.8.8</option>
+                      </select>
+                    </div>
+                    <br>
+            
+                    <div style="display: flex;">
+                      <canvas id="segmentedCanvas" style="display: flex;"></canvas>
+                      <div style="position: absolute;">
+                        <canvas id="maskCanvas"></canvas>
+                      </div>
+                    </div>
+                
+                
+                    <div class="columns has-background-grey-dark mt-2">
+                      <div class="column is-6">
+                        <div>
+                          <input class="is-radiusless" onchange="genPermalink()" type="checkbox" id="invert" name="invert" value="Bike">
+                          <label for="invert">Invert</label>
+                        </div>
+        
+                        <label for="gamma">Contrast adjust:</label>
+                        <div>
+                          <input class="input is-radiusless" onchange="genPermalink()" type="number" id="gamma" name="gamma" min="0" max="10" value="4" step="1" style="width: 100px;">
+                        </div>
+                        
+                        <label for="skew">Skew:</label>
+                        <div>
+                          <input class="input is-radiusless" onchange="genPermalink()" type="number" id="skew" name="skew" min="-30" max="30" value="3" step="0.5" style="width: 100px;">
+                        </div>
+                        
+                        <label for="gap">Gap between digits:</label>
+                        <div>
+                          <input class="input is-radiusless" onchange="genPermalink()" type="number" id="gap" name="gap" min="0" max="100" value="20" step="1" style="width: 100px;">
+                        </div>
+                      </div>
+                      <div class="column is-6">
+                        <label for="interval">Log interval (ms):</label>
+                        <div>
+                          <input class="input is-radiusless" onchange="genPermalink()" type="number" id="interval" name="interval" min="0" max="1000" value="10" step="1" style="width: 100px;">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="column is-12">          
+          <div class="columns">
+            <div class="column is-6">
+    
+              <div class="box is-shadowless	is-radiusless has-background-grey-darker has-text-primary-light">
+    
+                <div class="columns">
+                  
+                  <div class="column is-12">
+    
+                    <div class="notification is-link">Output.</div>
+    
+                    <div class="block">
+                      <p>Immediate output:</p>
+                      <div class="notification is-primary">
+                        <div class="has-text-weight-bold is-size-4" id="output"></div>
+                      </div>
+                    </div>
+                    
+                    <div class="block">
+                      <label class="checkbox">
+                        <input type="checkbox" id="startLog">
+                        Start log
+                      </label>
+                      <textarea rows="8" class="textarea is-radiusless" placeholder="" id="logOutput"></textarea>
+                    </div>
+    
+                    <div class="block">
+                      <label class="checkbox">
+                      <input type="checkbox" id="sendWs">
+                        Send to websocket
+                      </label>
+    
+                      <div class="field has-addons">
+                        <div class="control">
+                          <a class="button is-info">
+                            Server:
+                          </a>
+                        </div>
+                        <div class="control">
+                          <input class="input" type="text" placeholder="server address" value="ws://127.0.0.1:8181" id="wsAddr">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <p class="has-text-light">Permanent Link:</p>
+      <textarea id="permalinkInput" class="textarea is-radiusless" rows="2" placeholder="change something..."></textarea>
+    </div>
+  </section>
+
+  <script async src="js/main.js"></script>
+
+</body>
+</html>
