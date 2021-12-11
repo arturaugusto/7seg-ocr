@@ -1,5 +1,5 @@
 # 7seg-ocr
-A tool to digitize 7 segments displays
+The reliable tool to digitize 7 segments displays
 
 ![demo](demo.gif "Demo")
 
