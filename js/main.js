@@ -358,6 +358,12 @@ const ocr = () => {
                         res[6]) return '6'
 
         if            (res[0] && 
+              res[1] &&           res[2] && 
+                        !res[3] && 
+              !res[4] &&           res[5] && 
+                        !res[6]) return '7'
+        
+        if            (res[0] && 
               !res[1] &&           res[2] && 
                         !res[3] && 
               !res[4] &&           res[5] && 
