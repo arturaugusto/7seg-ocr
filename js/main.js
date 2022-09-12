@@ -33,6 +33,7 @@ let CONF = {
   digitHeigth: 80,
   digitWidth: 60,
   skew: 0,
+  vskew: 0,
   detectThresh: 0.2,
 }
 
@@ -110,6 +111,7 @@ const genPermalink = function() {
   '&invert=' + document.getElementById('invert').checked +
   '&gamma=' + document.getElementById('gamma').value +
   '&skew=' + document.getElementById('skew').value +
+  '&vskew=' + document.getElementById('vskew').value +
   '&gap=' + document.getElementById('gap').value +
   '&format=' + document.getElementById('format').selectedOptions[0].value +
   '&interval=' + document.getElementById('interval').value
@@ -180,11 +182,12 @@ const ocr = () => {
     for (let ocasion = 0; ocasion < 2; ocasion++) {
       for (let j = y; j < y+height-1; j++) {
         for (let i = x; i < x+width-1; i++) {
+          let jSkew = j - i*Math.sin(-CONF.vskew/180*Math.PI)
           let iSkew = i - j*Math.sin(-CONF.skew/180*Math.PI)
           if (ocasion === 1) {
-            drawPixel(iSkew, j, color)
+            drawPixel(iSkew, jSkew, color)
           } else {
-            segBuff.push(getPixel(iSkew, j))
+            segBuff.push(getPixel(iSkew, jSkew))
           }
         }
       }
@@ -542,9 +545,13 @@ function gotStream(stream) {
 
           if (maskCanvas.width * maskCanvas.height > 5) {
             CONF.skew = parseFloat(document.getElementById('skew').value)
+            CONF.vskew = parseFloat(document.getElementById('vskew').value)
             CONF.gap = parseFloat(document.getElementById('gap').value)
 
             CONF.padLeft = Math.abs(maskCanvas.height*Math.sin(-CONF.skew/180*Math.PI))
+
+            // CONF.padTop = (maskCanvas.width/2*Math.sin(-CONF.vskew/180*Math.PI))
+
 
             let digitsCount = CONF.format.split('').filter(x => x !== '.').length
 
@@ -552,8 +559,21 @@ function gotStream(stream) {
             if (CONF.skew > 0) {
               CONF.padLeft -= CONF.padLeft
             }
-            
+
             CONF.digitHeigth = maskCanvas.height
+            
+            CONF.padTop = 0
+            
+            if (CONF.vskew > 0) {
+              CONF.digitHeigth = CONF.digitHeigth - Math.abs(maskCanvas.width*Math.sin(CONF.vskew/180*Math.PI))
+            }
+
+            if (CONF.vskew < 0) {
+              CONF.digitHeigth = CONF.digitHeigth - Math.abs(maskCanvas.width*Math.sin(CONF.vskew/180*Math.PI))
+              CONF.padTop = (maskCanvas.width*Math.sin(-CONF.vskew/180*Math.PI))
+            }
+
+            
             CONF.tickWidth = CONF.digitHeigth / 20
             CONF.tickHeight = CONF.digitHeigth / 10
             
